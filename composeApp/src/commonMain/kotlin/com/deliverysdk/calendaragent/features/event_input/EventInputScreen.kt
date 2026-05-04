@@ -14,6 +14,7 @@ import com.deliverysdk.calendaragent.model.ParseResult
 import com.deliverysdk.calendaragent.model.ParsedEvent
 import com.deliverysdk.calendaragent.model.ParsingContext
 import com.deliverysdk.calendaragent.parser.EventParser
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +27,7 @@ fun EventInputScreen(
     var inputText by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -107,8 +109,7 @@ fun EventInputScreen(
                     isLoading = true
                     errorMessage = null
 
-                    // 启动协程解析
-                    LaunchedEffect(inputText) {
+                    coroutineScope.launch {
                         val context = ParsingContext(
                             now = kotlinx.datetime.Clock.System.now()
                         )

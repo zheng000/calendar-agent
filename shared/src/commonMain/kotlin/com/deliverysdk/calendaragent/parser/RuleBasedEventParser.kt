@@ -178,10 +178,11 @@ class RuleBasedEventParser : EventParser {
             val month = match.groupValues[1].toInt().coerceIn(1, 12)
             val day = match.groupValues[2].toInt().coerceIn(1, 31)
             val date = LocalDate(today.year, month, day)
-            val start = date.atStartOfDay().toInstant(tz)
+            val startDt = LocalDateTime(date, LocalTime(0, 0))
+            val start = startDt.toInstant(tz)
             return TimeMatch(
                 start = start,
-                end = start.plus(1, DateTimeUnit.DAY),
+                end = start.plus(1, DateTimeUnit.DAY, tz),
                 isAllDay = true,
                 matchedText = match.value,
             )
@@ -280,9 +281,9 @@ class RuleBasedEventParser : EventParser {
      */
     private fun getNextDayOfWeek(from: LocalDate, targetDay: DayOfWeek): LocalDate {
         val currentDow = from.dayOfWeek
-        val daysUntil = (targetDay.value - currentDow.value + 7) % 7
+        val daysUntil = (targetDay.isoDayNumber - currentDow.isoDayNumber + 7) % 7
         val adjustedDaysUntil = if (daysUntil == 0) 7 else daysUntil
-        return from.plus(adjustedDaysUntil.toLong(), DateTimeUnit.DAY)
+        return from.plus(adjustedDaysUntil, DateTimeUnit.DAY)
     }
 
     private data class TimeMatch(

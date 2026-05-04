@@ -11,8 +11,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.deliverysdk.calendaragent.calendar.CalendarService
 import com.deliverysdk.calendaragent.model.CalendarEvent
-import com.deliverysdk.calendaragent.model.CalendarPermissionResult
 import com.deliverysdk.calendaragent.model.ParsedEvent
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -30,6 +31,7 @@ fun EventPreviewScreen(
     var description by remember { mutableStateOf(event.description ?: "") }
     var isSaving by remember { mutableStateOf(false) }
     var saveResult by remember { mutableStateOf<SaveState?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     val startTimeDisplay = formatInstant(event.startTime)
     val endTimeDisplay = formatInstant(event.endTime)
@@ -173,15 +175,14 @@ fun EventPreviewScreen(
                         isAllDay = event.isAllDay,
                     )
 
-                    androidx.compose.runtime.LaunchedEffect(Unit) {
+                    coroutineScope.launch {
                         val result = calendarService.createEvent(calendarEvent)
                         isSaving = false
 
                         result.fold(
                             onSuccess = { eventId ->
                                 saveResult = SaveState.Success(eventId)
-                                // 延迟返回
-                                kotlinx.coroutines.delay(1500)
+                                delay(1500)
                                 onSaved()
                             },
                             onFailure = { error ->

@@ -1,21 +1,17 @@
-package com.deliverysdk.calendaragent.calendar
+package com.deliverysdk.calendaragent.storage
 
 import co.touchlab.kermit.Logger
-import com.deliverysdk.calendaragent.model.CalendarEvent
-import com.deliverysdk.calendaragent.model.CalendarPermissionResult
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.serialization.decodeValueOrNull
 import com.russhwolf.settings.serialization.encodeValue
-import com.russhwolf.settings.serialization.decodeValueOrNull
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.Serializable
 
 /**
  * 事件历史记录存储（跨平台共享）
  */
 class EventHistoryStorage(
-    private val settings: Settings = Settings(),
+    private val settings: Settings,
 ) {
     private val logger = Logger.withTag("EventHistoryStorage")
 
@@ -44,8 +40,7 @@ class EventHistoryStorage(
         return settings.decodeValueOrNull(
             serializer = ListSerializer(HistoryRecord.serializer()),
             key = KEY_HISTORY,
-            defaultValue = emptyList(),
-        )
+        ) ?: emptyList()
     }
 
     /**

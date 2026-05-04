@@ -5,6 +5,7 @@ import com.deliverysdk.calendaragent.calendar.CalendarService
 import com.deliverysdk.calendaragent.parser.EventParser
 import com.deliverysdk.calendaragent.parser.RuleBasedEventParser
 import com.deliverysdk.calendaragent.storage.EventHistoryStorage
+import com.russhwolf.settings.Settings
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -25,7 +26,8 @@ val appModule: Module = module {
     single<CalendarService> { CalendarService() }
 
     // 历史记录存储
-    single { EventHistoryStorage() }
+    single<Settings> { Settings() }
+    single { EventHistoryStorage(get()) }
 
     // 日志
     single { Logger.withTag("CalendarAgent") }
