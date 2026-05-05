@@ -2,7 +2,6 @@ package com.deliverysdk.calendaragent.network
 
 import co.touchlab.kermit.Logger
 import io.ktor.client.*
-import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -73,14 +72,7 @@ suspend fun testLlmConnection(
 }
 
 private fun createTestClient(): HttpClient {
-    val platform = getPlatformForTest()
-    val engine = when (platform) {
-        "android" -> OkHttp.create()
-        "ios" -> Darwin.create()
-        else -> OkHttp.create()
-    }
-
-    return HttpClient(engine) {
+    return HttpClient(OkHttp) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
@@ -90,16 +82,6 @@ private fun createTestClient(): HttpClient {
         }
     }
 }
-
-private fun getPlatformForTest(): String {
-    return try {
-        getPlatformNameForTest()
-    } catch (e: Throwable) {
-        "android"
-    }
-}
-
-expect fun getPlatformNameForTest(): String
 
 private fun parseApiError(raw: String): String {
     return try {

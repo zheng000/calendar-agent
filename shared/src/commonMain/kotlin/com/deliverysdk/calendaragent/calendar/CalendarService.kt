@@ -6,9 +6,8 @@ import com.deliverysdk.calendaragent.model.CalendarPermissionResult
 /**
  * 日历服务接口（平台实现）
  *
- * 通过 expect/actual 机制在各平台调用原生日历 API：
+ * 通过 expect/actual 机制调用 Android 原生日历 API：
  * - Android: Calendar Provider (CalendarContract)
- * - iOS: EventKit (EKEventStore)
  */
 expect class CalendarService() {
     /**

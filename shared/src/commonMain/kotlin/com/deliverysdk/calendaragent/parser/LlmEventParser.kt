@@ -5,10 +5,7 @@ import com.deliverysdk.calendaragent.model.ParseResult
 import com.deliverysdk.calendaragent.model.ParsedEvent
 import com.deliverysdk.calendaragent.model.ParsingContext
 import com.deliverysdk.calendaragent.network.LlmConfig
-import com.deliverysdk.calendaragent.network.LlmProvider
 import io.ktor.client.*
-import io.ktor.client.engine.*
-import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -28,6 +25,8 @@ import kotlinx.serialization.json.Json
  *
  * 支持的 Provider：
  * - SiliconCloud (硅基流动)
+ * - Groq
+ * - OpenRouter
  * - 任何兼容 OpenAI 协议的服务
  */
 class LlmEventParser(
@@ -38,7 +37,7 @@ class LlmEventParser(
 
     private val client: HttpClient by lazy { createClient() }
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     /**
      * 系统 Prompt —— 引导 LLM 输出标准 JSON
@@ -145,11 +144,7 @@ $text
     private fun parseLlmResponse(content: String): ParseResult {
         return try {
             // LLM 可能返回 Markdown 代码块包裹的 JSON，清理之
-            val cleanedJson = content
-                .removePrefix("```json")
-                .removePrefix("```")
-                .removeSuffix("```")
-                .trim()
+            val cleanedJson = extractJsonFromContent(content)
 
             val eventJson = json.decodeFromString<ParsedEventJson>(cleanedJson)
 
@@ -183,11 +178,42 @@ $text
     }
 
     /**
-     * 创建 HttpClient（平台相关引擎）
+     * 从 LLM 返回内容中提取 JSON
+     *
+     * 处理三种常见情况：
+     * 1. 纯 JSON：`{"title": "..."}`
+     * 2. Markdown 代码块包裹：````json {...} ```
+     * 3. 带前缀文字：`好的，以下是：{"title": "..."}`
+     */
+    private fun extractJsonFromContent(content: String): String {
+        // 先尝试提取 markdown 代码块
+        val codeBlockRegex = Regex("```(?:json)?\\s*([\\s\\S]*?)```")
+        val codeBlockMatch = codeBlockRegex.find(content)
+        if (codeBlockMatch != null) {
+            return codeBlockMatch.groupValues[1].trim()
+        }
+
+        // 如果没有代码块，尝试找到第一个 { 到最后一个 } 之间的内容
+        val firstBrace = content.indexOf('{')
+        val lastBrace = content.lastIndexOf('}')
+        if (firstBrace != -1 && lastBrace > firstBrace) {
+            return content.substring(firstBrace, lastBrace + 1)
+        }
+
+        // 兜底：返回原始内容
+        return content.trim()
+    }
+
+    /**
+     * 创建 HttpClient（使用 OkHttp 引擎）
      */
     private fun createClient(): HttpClient {
-        val engine = createEngine()
-        return HttpClient(engine) {
+        return HttpClient(OkHttp) {
+            engine {
+                config {
+                    retryOnConnectionFailure(true)
+                }
+            }
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true; isLenient = true })
             }
@@ -203,37 +229,7 @@ $text
             }
         }
     }
-
-    private fun createEngine(): HttpClientEngine {
-        return when (config.provider) {
-            // LLM providers use network; engine selected by platform
-            LlmProvider.SILICON_CLOUD -> createPlatformEngine()
-            else -> createPlatformEngine()
-        }
-    }
-
-    /**
-     * 平台相关 HTTP 引擎选择
-     */
-    private fun createPlatformEngine(): HttpClientEngine {
-        // Use Ktor's default engine selection via reflection
-        // For multiplatform, we check the runtime platform
-        val platform = getPlatform()
-        return when (platform) {
-            "android" -> OkHttp.create()
-            "ios" -> Darwin.create()
-            else -> OkHttp.create() // fallback
-        }
-    }
-
-    private fun getPlatform(): String {
-        return getPlatformName()
-    }
 }
-
-// --- Platform detection (expect/actual) ---
-
-expect fun getPlatformName(): String
 
 // --- LLM API 数据结构 ---
 
