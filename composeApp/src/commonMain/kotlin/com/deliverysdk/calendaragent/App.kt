@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.deliverysdk.calendaragent.features.event_input.EventInputScreen
 import com.deliverysdk.calendaragent.features.event_preview.EventPreviewScreen
 import com.deliverysdk.calendaragent.features.history.HistoryScreen
+import com.deliverysdk.calendaragent.features.settings.SettingsScreen
 import com.deliverysdk.calendaragent.model.ParsedEvent
 import com.deliverysdk.calendaragent.navigation.Screen
 import kotlinx.datetime.Instant
@@ -43,6 +44,9 @@ fun App(
                         onNavigateToHistory = {
                             navController.navigate(Screen.History.route)
                         },
+                        onNavigateToSettings = {
+                            navController.navigate(Screen.Settings.route)
+                        },
                     )
                 }
 
@@ -65,6 +69,12 @@ fun App(
 
                 composable(Screen.History.route) {
                     HistoryScreen(
+                        onBack = { navController.navigateUp() },
+                    )
+                }
+
+                composable(Screen.Settings.route) {
+                    SettingsScreen(
                         onBack = { navController.navigateUp() },
                     )
                 }

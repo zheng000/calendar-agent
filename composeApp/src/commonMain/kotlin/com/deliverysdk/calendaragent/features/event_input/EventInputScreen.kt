@@ -23,6 +23,7 @@ fun EventInputScreen(
     eventParser: EventParser = koinInject(),
     onNavigateToPreview: (ParsedEvent) -> Unit,
     onNavigateToHistory: () -> Unit,
+    onNavigateToSettings: () -> Unit,
 ) {
     var inputText by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -34,6 +35,9 @@ fun EventInputScreen(
             TopAppBar(
                 title = { Text("日历 Agent") },
                 actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "设置")
+                    }
                     IconButton(onClick = onNavigateToHistory) {
                         Icon(Icons.Default.History, contentDescription = "历史记录")
                     }

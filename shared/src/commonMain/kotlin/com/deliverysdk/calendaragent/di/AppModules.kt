@@ -2,7 +2,11 @@ package com.deliverysdk.calendaragent.di
 
 import co.touchlab.kermit.Logger
 import com.deliverysdk.calendaragent.calendar.CalendarService
+import com.deliverysdk.calendaragent.network.LlmConfig
+import com.deliverysdk.calendaragent.network.LlmConfigStorage
+import com.deliverysdk.calendaragent.network.LlmProvider
 import com.deliverysdk.calendaragent.parser.EventParser
+import com.deliverysdk.calendaragent.parser.LlmEventParser
 import com.deliverysdk.calendaragent.parser.RuleBasedEventParser
 import com.deliverysdk.calendaragent.storage.EventHistoryStorage
 import com.russhwolf.settings.Settings
@@ -12,15 +16,28 @@ import org.koin.dsl.module
 /**
  * Koin 依赖注入模块定义
  *
- * 当前使用 [RuleBasedEventParser] 作为占位实现，
- * Phase 2 替换为 LLM 实现时只需修改这一处。
+ * 动态选择 Parser：
+ * - 有 API Key + 选择 LLM → LlmEventParser
+ * - 无 API Key 或选择本地规则 → RuleBasedEventParser（离线兜底）
  */
 val appModule: Module = module {
-    // 解析器 —— Phase 1: 本地规则占位
-    single<EventParser> { RuleBasedEventParser() }
+    // LLM 配置
+    single { LlmConfigStorage() }
 
-    // Phase 2: 替换为 LLM 实现
-    // single<EventParser> { GeminiEventParser(get(), get()) }
+    // 解析器 —— 根据配置动态选择
+    single<EventParser> {
+        val config = get<LlmConfigStorage>().loadConfig()
+        when {
+            config.isConfigured -> {
+                Logger.withTag("AppModules").i { "Using LLM parser: ${config.provider.displayName}" }
+                LlmEventParser(config)
+            }
+            else -> {
+                Logger.withTag("AppModules").i { "Using rule-based parser (no LLM configured)" }
+                RuleBasedEventParser()
+            }
+        }
+    }
 
     // 日历服务（平台相关，通过 expect/actual 提供）
     single<CalendarService> { CalendarService() }
@@ -31,4 +48,23 @@ val appModule: Module = module {
 
     // 日志
     single { Logger.withTag("CalendarAgent") }
+}
+
+/**
+ * 动态重建 EventParser（配置变更后调用）
+ */
+fun reloadParser() {
+    try {
+        val config = org.koin.core.context.GlobalContext.get()
+            .getOrNull<LlmConfigStorage>()?.loadConfig() ?: LlmConfig()
+        val parser: EventParser = if (config.isConfigured) {
+            LlmEventParser(config)
+        } else {
+            RuleBasedEventParser()
+        }
+        org.koin.core.context.GlobalContext.get()
+            .getKoin().factory<EventParser> { _, _ -> parser }
+    } catch (e: Exception) {
+        Logger.withTag("AppModules").e(e) { "Failed to reload parser" }
+    }
 }
