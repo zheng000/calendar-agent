@@ -2,7 +2,6 @@
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
 
 ## Kotlin
 *.class
@@ -10,27 +9,31 @@ build/
 *.war
 *.zip
 *.kotlin_metadata
+*.kotlin_built
+*.kotlin
+
+## Kotlin/Native
+**/.kotlin/
 
 ## IDE
 *.iml
 *.ipr
 *.iws
-.idea/
+*.idea/
 *.swp
 *.swo
 *~
+.vscode/
+*.rbc
 
 ## OS
 .DS_Store
 Thumbs.db
+._*
 
 ## Local
 local.properties
 *.local.properties
-
-## Build outputs
-*/build/
-*/out/
 
 ## KSP
 **/ksp/
@@ -39,3 +42,29 @@ local.properties
 *.apk
 *.aab
 *.dex
+*.ap_
+captures/
+.externalNativeBuild/
+.cxx/
+lint/
+lint-results.xml
+androidTestPreview/
+
+## Compose Multiplatform
+composeApp/build/
+composeApp/out/
+
+## MMKV
+**/mmkv/
+**/mmkv.default/
+
+## Testing
+*.log
+*.tmp
+*.bak
+*.orig
+*.pidb
+test-results/
+
+## CI/CD
+.github/workflows/
