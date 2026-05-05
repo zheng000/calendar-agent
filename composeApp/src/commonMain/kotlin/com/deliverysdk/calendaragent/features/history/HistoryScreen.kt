@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.deliverysdk.calendaragent.model.HistoryRecord
 import com.deliverysdk.calendaragent.storage.EventHistoryStorage
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -74,7 +75,7 @@ fun HistoryScreen(
 }
 
 @Composable
-private fun HistoryCard(record: com.deliverysdk.calendaragent.storage.HistoryRecord) {
+private fun HistoryCard(record: HistoryRecord) {
     Card(
         modifier = Modifier.fillMaxWidth(),
     ) {

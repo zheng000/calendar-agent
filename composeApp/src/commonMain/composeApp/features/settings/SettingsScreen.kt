@@ -71,6 +71,7 @@ fun SettingsScreen(
                     val llmProviders = listOf(
                         LlmProvider.RULE_BASED,
                         LlmProvider.SILICON_CLOUD,
+                        LlmProvider.GROQ,
                     )
                     llmProviders.forEach { provider ->
                         Row(
@@ -98,7 +99,13 @@ fun SettingsScreen(
                                     )
                                 } else if (provider == LlmProvider.SILICON_CLOUD) {
                                     Text(
-                                        text = "硅基流动 API，模型: ${provider.defaultModel}（免费额度）",
+                                        text = "硅基流动 API，模型: ${provider.defaultModel}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                } else if (provider == LlmProvider.GROQ) {
+                                    Text(
+                                        text = "Groq API，模型: ${provider.defaultModel}（超快推理）",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -133,8 +140,13 @@ fun SettingsScreen(
                         )
 
                         // 获取 Key 的链接提示
+                        val providerHint = when (selectedProvider) {
+                            LlmProvider.SILICON_CLOUD -> "cloud.siliconflow.cn 注册获取免费 API Key"
+                            LlmProvider.GROQ -> "console.groq.com 注册获取免费 API Key"
+                            else -> "获取 API Key"
+                        }
                         Text(
-                            text = "💡 前往 cloud.siliconflow.cn 注册获取免费 API Key",
+                            text = "💡 前往 $providerHint",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

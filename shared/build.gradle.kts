@@ -23,9 +23,6 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.koin.core)
-            implementation(libs.multiplatform.settings)
-            implementation(libs.multiplatform.settings.no.arg)
-            implementation(libs.multiplatform.settings.serialization)
             implementation(libs.kermit)
             // Ktor HTTP client for LLM API calls
             implementation(libs.ktor.client.core)
@@ -36,6 +33,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.core.ktx)
             implementation(libs.ktor.client.okhttp)
+            // MMKV for config storage
+            implementation("com.tencent:mmkv:1.3.11")
         }
     }
 }

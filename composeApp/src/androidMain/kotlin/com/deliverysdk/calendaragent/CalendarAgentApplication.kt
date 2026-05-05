@@ -12,7 +12,7 @@ class CalendarAgentApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@CalendarAgentApplication)
-            modules(appModule)
+            modules(appModule(this@CalendarAgentApplication))
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.deliverysdk.calendaragent.di
 
+import android.content.Context
 import co.touchlab.kermit.Logger
 import com.deliverysdk.calendaragent.calendar.CalendarService
 import com.deliverysdk.calendaragent.network.LlmConfig
@@ -9,7 +10,6 @@ import com.deliverysdk.calendaragent.parser.EventParser
 import com.deliverysdk.calendaragent.parser.LlmEventParser
 import com.deliverysdk.calendaragent.parser.RuleBasedEventParser
 import com.deliverysdk.calendaragent.storage.EventHistoryStorage
-import com.russhwolf.settings.Settings
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -20,8 +20,11 @@ import org.koin.dsl.module
  * - 有 API Key + 选择 LLM → LlmEventParser
  * - 无 API Key 或选择本地规则 → RuleBasedEventParser（离线兜底）
  */
-val appModule: Module = module {
-    // LLM 配置
+fun appModule(context: Context): Module = module {
+    // Context
+    single<Context> { context }
+
+    // LLM 配置存储 (MMKV)
     single { LlmConfigStorage() }
 
     // 解析器 —— 根据配置动态选择
@@ -42,9 +45,8 @@ val appModule: Module = module {
     // 日历服务（平台相关，通过 expect/actual 提供）
     single<CalendarService> { CalendarService() }
 
-    // 历史记录存储
-    single<Settings> { Settings() }
-    single { EventHistoryStorage(get()) }
+    // 历史记录存储 (MMKV)
+    single { EventHistoryStorage(context) }
 
     // 日志
     single { Logger.withTag("CalendarAgent") }
